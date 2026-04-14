@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Readiness Assessment — Platform Walkthrough</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #f8f8f8;
+    --surface: #ffffff;
+    --surface-2: #fafafa;
+    --border: #e5e5e5;
+    --border-light: #f0f0f0;
+    --text: #111;
+    --text-2: #444;
+    --text-3: #888;
+    --red: #ED1C24;
+    --red-soft: #fef2f2;
+    --red-mid: #fca5a5;
+    --blue: #1e40af;
+    --blue-soft: #eff6ff;
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --slate: #334155;
+    --slate-soft: #f1f5f9;
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --radius: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .header {
+    background: var(--text);
+    color: #fff;
+    padding: 48px 32px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: var(--red);
+    opacity: 0.08;
+    border-radius: 50%;
+  }
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    margin-bottom: 20px;
+    color: rgba(255,255,255,0.7);
+  }
+  .header-badge .dot {
+    width: 6px; height: 6px;
+    background: var(--red);
+    border-radius: 50%;
+  }
+  .header h1 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+    position: relative;
+  }
+  .header p {
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.5);
+    font-weight: 300;
+    position: relative;
+  }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    padding: 24px 0 0;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+    padding-bottom: 24px;
+  }
+  .tab {
+    padding: 9px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-3);
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .tab:hover { border-color: var(--text-3); color: var(--text-2); }
+  .tab.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Persona card */
+  .persona {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 32px;
+    padding: 22px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .persona-avatar {
+    width: 52px; height: 52px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .persona h2 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+  .persona .role { font-size: 0.78rem; color: var(--text-2); margin-bottom: 6px; }
+  .persona .context { font-size: 0.75rem; color: var(--text-3); line-height: 1.5; }
+
+  /* Flow */
+  .flow { position: relative; padding-left: 36px; margin-bottom: 32px; }
+  .flow::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 16px;
+    bottom: 16px;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .step {
+    position: relative;
+    padding: 16px 0;
+  }
+  .step::before {
+    content: '';
+    position: absolute;
+    left: -27px;
+    top: 24px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2.5px solid var(--green);
+    background: var(--green);
+    z-index: 2;
+  }
+
+  .step-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+  }
+  .step-card:hover { border-color: #ccc; }
+
+  .step-num {
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+  }
+  .step-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  .step-desc {
+    font-size: 0.78rem;
+    color: var(--text-2);
+    margin-bottom: 10px;
+    line-height: 1.55;
+  }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-weight: 500;
+  }
+  .tag-action { background: var(--blue-soft); color: var(--blue); }
+  .tag-sees { background: var(--green-soft); color: var(--green); }
+  .tag-page { background: var(--slate-soft); color: var(--slate); }
+
+  /* Stats row */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 40px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat .num { font-size: 1.3rem; font-weight: 700; }
+  .stat .label { font-size: 0.68rem; color: var(--text-3); margin-top: 2px; }
+
+  /* Roadmap section */
+  .roadmap {
+    margin-top: 48px;
+    margin-bottom: 48px;
+  }
+  .roadmap h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .roadmap-item {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .roadmap-item .priority {
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .roadmap-item .priority.p1 { color: var(--red); }
+  .roadmap-item .priority.p2 { color: var(--amber); }
+  .roadmap-item h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+  .roadmap-item p { font-size: 0.75rem; color: var(--text-2); line-height: 1.5; }
+
+  /* Handoff flow */
+  .handoff-section {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 32px;
+  }
+  .handoff-section h3 {
+    font-size: 0.92rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .handoff-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .handoff-node {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 90px;
+  }
+  .handoff-arrow {
+    font-size: 0.8rem;
+    color: var(--text-3);
+    padding: 0 6px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 0.72rem;
+    color: var(--text-3);
+    border-top: 1px solid var(--border);
+    margin-top: 24px;
+  }
+
+  @media (max-width: 700px) {
+    .persona { flex-direction: column; gap: 12px; }
+    .roadmap-grid { grid-template-columns: 1fr; }
+    .handoff-flow { flex-direction: column; }
+    .handoff-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge"><span class="dot"></span> Equinix Global Solutions</div>
+  <h1>AI readiness assessment</h1>
+  <p>Platform walkthrough and user workflows</p>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="switchView('gsa')">Solutions architect</button>
+    <button class="tab" onclick="switchView('client')">Client</button>
+    <button class="tab" onclick="switchView('admin')">Partner admin</button>
+    <button class="tab" onclick="switchView('pipeline')">End-to-end flow</button>
+    <button class="tab" onclick="switchView('roadmap')">Next priorities</button>
+  </div>
+
+  <!-- ===== GSA FLOW ===== -->
+  <div class="view active" id="view-gsa">
+    <div class="persona" style="border-left: 3px solid var(--red);">
+      <div class="persona-avatar" style="background: var(--red);">JM</div>
+      <div>
+        <h2>John Martinez</h2>
+        <div class="role">Global Solutions Architect, Equinix</div>
+        <div class="context">Manages 30+ enterprise accounts. Sends assessment links to prospects, reviews results in the dashboard, and prioritizes outreach based on AI readiness scores.</div>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--red);">Step 1</div>
+          <div class="step-title">Sign in to partner portal</div>
+          <div class="step-desc">Signs in via Clerk (email, SSO, or social). Session synced to backend. Auto-redirected to the dashboard as Partner User.</div>
+          <div class="tags">
+            <span class="tag tag-page">/login</span>
+            <span class="tag tag-sees">Sidebar: Dashboard, Invites, Templates</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--red);">Step 2</div>
+          <div class="step-title">Review dashboard overview</div>
+          <div class="step-desc">Scans stats cards: total assessments, average readiness score, how many need attention, completion rate. Stage distribution chart shows the portfolio breakdown.</div>
+          <div class="tags">
+            <span class="tag tag-sees">Stats cards, stage distribution chart</span>
+            <span class="tag tag-page">/dashboard</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--red);">Step 3</div>
+          <div class="step-title">Scan assessment pipeline</div>
+          <div class="step-desc">Pipeline table defaults to "needs attention" filter, showing unreviewed assessments and high-readiness prospects not yet contacted. Toggle between individual assessments and aggregated client view. Own assessments highlighted with "Mine" badge. Sort by score to find the best opportunities.</div>
+          <div class="tags">
+            <span class="tag tag-action">Toggle: Individuals / Clients view</span>
+            <span class="tag tag-sees">Needs attention filter, score sorting, "Mine" badges</span>
+            <span class="tag tag-sees">Client view: composite scores across all assessments per company</span>
+            <span class="tag tag-page">/dashboard</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--red);">Step 4</div>
+          <div class="step-title">Open client detail</div>
+          <div class="step-desc">Clicks a row to open the detail drawer. In individual view: sees summary card with auto-generated insight, barrier heatmap, and 3-tab report (Diagnosis, Opportunities, Investment Case). In client view: sees composite scores across all assessments with an assessment selector to drill into any individual assessment.</div>
+          <div class="tags">
+            <span class="tag tag-sees">Priority insight, barrier heatmap (security, integration, cost, expertise)</span>
+            <span class="tag tag-sees">7-dimension radar chart, ranked opportunities, investment case</span>
+            <span class="tag tag-sees">Client view: assessment coverage bar + selector dropdown</span>
+            <span class="tag tag-page">/dashboard (drawer)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--red);">Step 5</div>
+          <div class="step-title">Generate live prototype</div>
+          <div class="step-desc">From the Opportunities tab, clicks "Prototype this" on a top-ranked opportunity. The platform generates a product spec from the assessment context, then builds a live interactive prototype. John reviews the spec and opens the prototype to show the client what an AI solution could look like.</div>
+          <div class="tags">
+            <span class="tag tag-action">Click "Prototype this" on opportunity card</span>
+            <span class="tag tag-sees">Generated product spec + live prototype URL</span>
+            <span class="tag tag-page">/dashboard (prototype modal)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--red);">Step 6</div>
+          <div class="step-title">Take action</div>
+          <div class="step-desc">Uses row-level quick actions: copy the assessment link, archive (with 5-second undo). Downloads a branded PDF report to share ahead of a discovery call.</div>
+          <div class="tags">
+            <span class="tag tag-action">Copy link, archive, download PDF</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--red);">Step 7</div>
+          <div class="step-title">Generate new invite</div>
+          <div class="step-desc">Goes to Invites page. Selects an assessment template. Chooses link type: general (for events or LinkedIn), client-specific (for a company), or person-specific (for an individual). Generates and copies the tracking link.</div>
+          <div class="tags">
+            <span class="tag tag-action">Select template, choose link type, generate link</span>
+            <span class="tag tag-page">/dashboard/invites</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">4</div><div class="label">Pages visited</div></div>
+      <div class="stat"><div class="num">~3 min</div><div class="label">Time per session</div></div>
+      <div class="stat"><div class="num">5-8</div><div class="label">Clients reviewed</div></div>
+      <div class="stat"><div class="num">2-3</div><div class="label">Actions per client</div></div>
+    </div>
+  </div>
+
+  <!-- ===== CLIENT FLOW ===== -->
+  <div class="view" id="view-client">
+    <div class="persona" style="border-left: 3px solid var(--blue);">
+      <div class="persona-avatar" style="background: var(--blue);">SC</div>
+      <div>
+        <h2>Sarah Chen</h2>
+        <div class="role">VP of Operations, Acme Manufacturing</div>
+        <div class="context">Received an assessment link from her Equinix contact. Interested in AI but unsure where to start. Has 5 minutes between meetings. Wants something quick and useful, not a sales pitch.</div>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--blue);">Entry</div>
+          <div class="step-title">Receives assessment link</div>
+          <div class="step-desc">Gets a link via email, message, or LinkedIn. Client-specific links go straight to the assessment. General links prompt sign-up first via Clerk.</div>
+          <div class="tags">
+            <span class="tag tag-sees">Equinix-branded assessment page</span>
+            <span class="tag tag-page">/assessment?ref=EQX-...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--blue);">Step 1</div>
+          <div class="step-title">Welcome and company profile</div>
+          <div class="step-desc">Enters company name, industry, size, and business priorities. Sees "4-5 minutes" time estimate. Clean, distraction-free layout with partner branding.</div>
+          <div class="tags">
+            <span class="tag tag-action">Company name, industry, size, priorities</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--blue);">Step 2</div>
+          <div class="step-title">AI maturity self-assessment</div>
+          <div class="step-desc">Rates their perceived AI maturity on a 5-stage scale. Indicates executive sponsorship level, AI budget status, and whether teams have experimented informally.</div>
+          <div class="tags">
+            <span class="tag tag-action">Maturity stage, sponsorship, budget, experimentation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--blue);">Step 3</div>
+          <div class="step-title">Operations and use cases</div>
+          <div class="step-desc">Rates operational bottlenecks. Sees AI use cases with "Recommended" and "Top Pick" badges based on their selections. Rates pain level and manual work percentage for each selected use case.</div>
+          <div class="tags">
+            <span class="tag tag-sees">"Top Pick" badges, hover tooltips with real examples</span>
+            <span class="tag tag-action">Pain rating (1-5) + manual work % per use case</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--blue);">Step 4</div>
+          <div class="step-title">Data, governance, and infrastructure</div>
+          <div class="step-desc">Answers data quality, API openness, governance posture, and security constraints. Rates barrier statements on a Likert scale. Selects infrastructure approach and Equinix usage. If using Equinix: 6 conditional questions appear covering GPU types, deployment model, and workload types.</div>
+          <div class="tags">
+            <span class="tag tag-action">Barrier ratings, security constraints, infra approach</span>
+            <span class="tag tag-sees">Equinix-specific qualification cards (conditional)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--blue);">Step 5</div>
+          <div class="step-title">Execution and people</div>
+          <div class="step-desc">Selects team capabilities, change readiness, timeline, budget range, and preferred operating model. Clicks "View Results."</div>
+          <div class="tags">
+            <span class="tag tag-action">Capabilities, readiness, timeline, budget, model</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--blue);">Step 6</div>
+          <div class="step-title">Receive AI-powered results</div>
+          <div class="step-desc">AI generates a personalized readiness report. Three tabs: Diagnosis (7-dimension radar chart comparing perceived vs calculated readiness), Opportunities (ranked by pain, readiness fit, and manual work), and Investment Case (cost ranges, timelines, expected outcomes, risks).</div>
+          <div class="tags">
+            <span class="tag tag-sees">Perceived vs calculated stage comparison</span>
+            <span class="tag tag-sees">Ranked opportunities with "Top Pick" badges</span>
+            <span class="tag tag-sees">Per-initiative ROI with risks and next steps</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--blue);">Exit</div>
+          <div class="step-title">Take action</div>
+          <div class="step-desc">Downloads a branded PDF report to share with leadership. Clicks "Schedule a conversation" to email the Equinix team. Can sign in and claim the assessment to their organization for future access via the client portal.</div>
+          <div class="tags">
+            <span class="tag tag-action">Download PDF, schedule conversation, claim to org</span>
+            <span class="tag tag-page">/client (portal for returning users)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">1</div><div class="label">Page visited</div></div>
+      <div class="stat"><div class="num">4-5 min</div><div class="label">Time to complete</div></div>
+      <div class="stat"><div class="num">~20</div><div class="label">Interactions</div></div>
+      <div class="stat"><div class="num">Optional</div><div class="label">Account creation</div></div>
+    </div>
+  </div>
+
+  <!-- ===== PARTNER ADMIN FLOW ===== -->
+  <div class="view" id="view-admin">
+    <div class="persona" style="border-left: 3px solid var(--slate);">
+      <div class="persona-avatar" style="background: var(--slate);">AR</div>
+      <div>
+        <h2>Alex Rivera</h2>
+        <div class="role">Partner Admin, Equinix</div>
+        <div class="context">ADMIN role. Full access to all assessments across all GSAs, team management, and template configuration. Finds the best opportunities across all GSA pipelines.</div>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--slate);">Step 1</div>
+          <div class="step-title">Review portfolio health</div>
+          <div class="step-desc">Signs in via Clerk. Full sidebar: Dashboard, Invites, Templates, Team. Scans stats across all GSAs: total volume, average readiness, need-attention count, stage distribution chart.</div>
+          <div class="tags">
+            <span class="tag tag-sees">Org-wide stats, stage distribution chart</span>
+            <span class="tag tag-page">/dashboard</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--slate);">Step 2</div>
+          <div class="step-title">Identify high-value opportunities</div>
+          <div class="step-desc">Reviews pipeline in client view. High-readiness clients with large budgets and fast timelines surface at the top. Sorts by composite score. Switches to individual view for granular assessment-level detail.</div>
+          <div class="tags">
+            <span class="tag tag-action">Toggle Individuals / Clients, sort by score</span>
+            <span class="tag tag-sees">Composite scores, assessment count per company</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--slate);">Step 3</div>
+          <div class="step-title">Deep dive into opportunity</div>
+          <div class="step-desc">Opens a client's detail drawer. Reviews composite view across all assessments, barrier heatmap, and the 3-tab report. Selects individual assessments from the dropdown to compare scores over time.</div>
+          <div class="tags">
+            <span class="tag tag-sees">Composite drawer, assessment selector, full report</span>
+            <span class="tag tag-page">/dashboard (drawer)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--slate);">Step 4</div>
+          <div class="step-title">Manage assessment templates</div>
+          <div class="step-desc">Creates and manages assessment templates. Visual builder with sidebar and focused editor. Duplicate the standard template, toggle or reorder questions, add custom questions, adjust section weights.</div>
+          <div class="tags">
+            <span class="tag tag-action">Create, duplicate, edit, delete templates</span>
+            <span class="tag tag-page">/dashboard/templates</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--slate);">Step 5</div>
+          <div class="step-title">Manage team</div>
+          <div class="step-desc">Lists all partner org members with roles. Invites new team members by email with role picker (Admin, User, Viewer). Updates roles or removes members. Guards: cannot demote the last admin, cannot remove self.</div>
+          <div class="tags">
+            <span class="tag tag-action">Invite, edit roles, remove members</span>
+            <span class="tag tag-page">/dashboard/team</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-card">
+          <div class="step-num" style="color:var(--slate);">Step 6</div>
+          <div class="step-title">Switch organization context</div>
+          <div class="step-desc">If the user belongs to multiple organizations, uses the org switcher in the header to switch context. An org can be both partner and client. Switching changes the entire portal view.</div>
+          <div class="tags">
+            <span class="tag tag-action">Org switcher dropdown in header</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">4</div><div class="label">Pages visited</div></div>
+      <div class="stat"><div class="num">~5 min</div><div class="label">Time per session</div></div>
+      <div class="stat"><div class="num">Weekly</div><div class="label">Usage frequency</div></div>
+      <div class="stat"><div class="num">Strategic</div><div class="label">Decision type</div></div>
+    </div>
+  </div>
+
+  <!-- ===== END-TO-END PIPELINE ===== -->
+  <div class="view" id="view-pipeline">
+    <div class="handoff-section">
+      <h3>Deal flow: partner to implementation</h3>
+      <div class="handoff-flow">
+        <div class="handoff-node" style="background:var(--red-soft);color:var(--red);">GSA sends link</div>
+        <div class="handoff-arrow">&rarr;</div>
+        <div class="handoff-node" style="background:var(--blue-soft);color:var(--blue);">Client completes</div>
+        <div class="handoff-arrow">&rarr;</div>
+        <div class="handoff-node" style="background:var(--green-soft);color:var(--green);">AI generates report</div>
+        <div class="handoff-arrow">&rarr;</div>
+        <div class="handoff-node" style="background:var(--red-soft);color:var(--red);">GSA reviews + prototypes</div>
+        <div class="handoff-arrow">&rarr;</div>
+        <div class="handoff-node" style="background:var(--slate-soft);color:var(--slate);">Admin prioritizes</div>
+        <div class="handoff-arrow">&rarr;</div>
+        <div class="handoff-node" style="background:var(--amber-soft);color:var(--amber);border:1.5px dashed var(--amber);">Proposal + sale</div>
+      </div>
+      <div style="text-align:center;font-size:0.7rem;color:var(--text-3);margin-top:10px;">Steps 1-5 are fully automated in the platform. Proposal generation is on the roadmap.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="handoff-section">
+        <h3>GSA to client</h3>
+        <p style="font-size:0.78rem;color:var(--text-2);margin-top:8px;">
+          Assessment tracking link generated on /dashboard/invites. GSA copies and sends via email, Slack, or LinkedIn. Three link types: general, client-specific, person-specific.
+        </p>
+      </div>
+      <div class="handoff-section">
+        <h3>Client to platform</h3>
+        <p style="font-size:0.78rem;color:var(--text-2);margin-top:8px;">
+          5-step wizard captures structured responses. Data persisted to backend on first step (STARTED) and after AI generation (COMPLETED). No account required for client-specific links.
+        </p>
+      </div>
+      <div class="handoff-section">
+        <h3>Platform to client</h3>
+        <p style="font-size:0.78rem;color:var(--text-2);margin-top:8px;">
+          AI-generated readiness report with 7-dimension scoring, ranked opportunities, and investment case. Branded PDF download available. Client portal for returning users.
+        </p>
+      </div>
+      <div class="handoff-section">
+        <h3>Platform to GSA</h3>
+        <p style="font-size:0.78rem;color:var(--text-2);margin-top:8px;">
+          Scores, stages, use cases, budgets, and timelines surfaced in the pipeline table and detail drawer. Composite client view aggregates across multiple assessments. Live prototype generation from opportunities.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ROADMAP / GAPS ===== -->
+  <div class="view" id="view-roadmap">
+    <div class="roadmap">
+      <h3>Next development priorities</h3>
+      <p style="font-size:0.8rem;color:var(--text-2);margin-bottom:20px;">Ordered by impact on the partner workflow.</p>
+
+      <div class="roadmap-grid">
+        <div class="roadmap-item">
+          <div class="priority p1">Priority 1</div>
+          <h4>Notes and activity log</h4>
+          <p>Persist notes, contacted status, and flags to the backend. Currently UI-only, lost on refresh. With persistence, the whole team sees the same state.</p>
+        </div>
+        <div class="roadmap-item">
+          <div class="priority p1">Priority 1</div>
+          <h4>Email notifications</h4>
+          <p>Notify GSAs when a client completes an assessment. Currently there is no notification; GSAs must check the dashboard manually.</p>
+        </div>
+        <div class="roadmap-item">
+          <div class="priority p1">Priority 1</div>
+          <h4>Escalation workflow</h4>
+          <p>"Flag for solution design" currently shows a toast but does not persist or notify the admin. Wire this to the notes system and surface flagged items in the admin view.</p>
+        </div>
+        <div class="roadmap-item">
+          <div class="priority p2">Priority 2</div>
+          <h4>Industry benchmarks</h4>
+          <p>Compare a client's scores against their industry average across all 7 dimensions. Gives the GSA an immediate conversation starter.</p>
+        </div>
+        <div class="roadmap-item">
+          <div class="priority p2">Priority 2</div>
+          <h4>Aggregate analytics</h4>
+          <p>Industry breakdown, use case distribution, and revenue pipeline funnel across the full portfolio. Currently the dashboard shows stage distribution only.</p>
+        </div>
+        <div class="roadmap-item">
+          <div class="priority p2">Priority 2</div>
+          <h4>Proposal generation</h4>
+          <p>Auto-generate a scoped proposal document from the assessment data, investment case, and prototype. Currently the GSA assembles this manually.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  AI Readiness Assessment Platform. Built by Better Brain for Equinix Global Solutions.
+</div>
+
+<script>
+function switchView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>
