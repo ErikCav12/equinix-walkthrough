@@ -310,11 +310,41 @@
     margin-top: 24px;
   }
 
+  .download-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 10px 20px;
+    background: var(--text);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .download-btn:hover { opacity: 0.9; }
+
   @media (max-width: 700px) {
     .persona { flex-direction: column; gap: 12px; }
     .roadmap-grid { grid-template-columns: 1fr; }
     .handoff-flow { flex-direction: column; }
     .handoff-arrow { transform: rotate(90deg); }
+  }
+
+  @media print {
+    .header-badge, .download-btn, .tabs { display: none !important; }
+    .view { display: block !important; page-break-before: always; }
+    .view:first-of-type { page-break-before: avoid; }
+    body { background: white; }
+    .header { background: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .step-card { break-inside: avoid; page-break-inside: avoid; }
+    .persona { break-inside: avoid; }
+    .roadmap-item { break-inside: avoid; }
+    .container { max-width: 100%; padding: 0 16px; }
   }
 </style>
 </head>
@@ -375,7 +405,7 @@
         <div class="step-card">
           <div class="step-num" style="color:var(--red);">Step 3</div>
           <div class="step-title">Scan assessment pipeline</div>
-          <div class="step-desc">Pipeline table defaults to "needs attention" filter, showing unreviewed assessments and high-readiness prospects not yet contacted. Toggle between individual assessments and aggregated client view. Own assessments highlighted with "Mine" badge. Sort by score to find the best opportunities.</div>
+          <div class="step-desc">Pipeline table defaults to "needs attention" filter, showing unreviewed assessments and high-readiness prospects not yet archived. Toggle between individual assessments and aggregated client view. Own assessments highlighted with "Mine" badge. Sort by score to find the best opportunities.</div>
           <div class="tags">
             <span class="tag tag-action">Toggle: Individuals / Clients view</span>
             <span class="tag tag-sees">Needs attention filter, score sorting, "Mine" badges</span>
@@ -709,7 +739,7 @@
         <div class="roadmap-item">
           <div class="priority p1">Priority 1</div>
           <h4>Notes and activity log</h4>
-          <p>Persist notes, contacted status, and flags to the backend. Currently UI-only, lost on refresh. With persistence, the whole team sees the same state.</p>
+          <p>Persist notes and flags to the backend. Archive action is already persisted. Notes enable team-wide visibility into client follow-up activity.</p>
         </div>
         <div class="roadmap-item">
           <div class="priority p1">Priority 1</div>
@@ -741,6 +771,8 @@
   </div>
 
 </div>
+
+<button class="download-btn" onclick="window.print()">Download PDF</button>
 
 <div class="footer">
   AI Readiness Assessment Platform. Built by Better Brain for Equinix Global Solutions.
