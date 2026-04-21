@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How we calculate ROI — AI Readiness Assessment</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #f8f8f8;
+    --surface: #ffffff;
+    --surface-2: #fafafa;
+    --border: #e5e5e5;
+    --border-light: #f0f0f0;
+    --text: #111;
+    --text-2: #444;
+    --text-3: #888;
+    --red: #ED1C24;
+    --red-soft: #fef2f2;
+    --red-mid: #fca5a5;
+    --blue: #1e40af;
+    --blue-soft: #eff6ff;
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --slate: #334155;
+    --slate-soft: #f1f5f9;
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --radius: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== Header ===== */
+  .header {
+    background: var(--text);
+    color: #fff;
+    padding: 56px 32px 44px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: var(--red);
+    opacity: 0.08;
+    border-radius: 50%;
+    filter: blur(60px);
+  }
+  .header h1 {
+    font-size: 2.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .header p {
+    font-size: 1rem;
+    color: #cbd5e1;
+    max-width: 640px;
+    margin: 0 auto;
+    font-weight: 300;
+    position: relative;
+  }
+  .header .back-link {
+    position: absolute;
+    top: 24px;
+    left: 32px;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .header .back-link:hover { color: #fff; }
+
+  /* ===== Layout ===== */
+  .container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 48px 32px 96px;
+  }
+
+  section { margin-bottom: 48px; }
+  section h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  section h2 .step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-right: 12px;
+    vertical-align: middle;
+  }
+  section > p.lede {
+    color: var(--text-2);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    font-weight: 300;
+    max-width: 72ch;
+  }
+
+  /* ===== Cards ===== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+  .card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .card p {
+    color: var(--text-2);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* ===== Formula blocks ===== */
+  .formula {
+    background: var(--slate-soft);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--slate);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.85rem;
+    color: var(--slate);
+    margin: 12px 0;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  /* ===== Tables ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin: 12px 0;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  th {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  td:first-child { font-weight: 500; }
+  td.num, th.num { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+  td.emp { font-style: italic; color: var(--text-3); }
+
+  /* ===== Pills ===== */
+  .pill {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--slate-soft);
+    color: var(--slate);
+  }
+  .pill.green { background: var(--green-soft); color: var(--green); }
+  .pill.amber { background: var(--amber-soft); color: var(--amber); }
+  .pill.red { background: var(--red-soft); color: var(--red); }
+  .pill.blue { background: var(--blue-soft); color: var(--blue); }
+
+  /* ===== Callouts ===== */
+  .callout {
+    background: var(--amber-soft);
+    border-left: 3px solid var(--amber);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .callout.green { background: var(--green-soft); border-left-color: var(--green); }
+  .callout.blue { background: var(--blue-soft); border-left-color: var(--blue); }
+  .callout p { margin: 0; font-size: 0.88rem; color: var(--text-2); }
+  .callout strong { color: var(--text); font-weight: 600; }
+
+  /* ===== Worked example scenario grid ===== */
+  .scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .scenario-grid .scn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .scenario-grid .scn .label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+  .scenario-grid .scn .val {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .scenario-grid .scn .sub {
+    font-size: 0.75rem;
+    color: var(--text-3);
+    margin-top: 4px;
+  }
+  .scenario-grid .scn.base { border-color: var(--red-mid); background: var(--red-soft); }
+
+  .footer {
+    text-align: center;
+    padding: 32px 24px;
+    color: var(--text-3);
+    font-size: 0.78rem;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" class="back-link">← Back to walkthrough</a>
+  <h1>How we calculate the ROI</h1>
+  <p>The math behind every dollar figure on the Financial Leader-facing ROI report — audit-level transparent, no black-box multipliers.</p>
+</div>
+
+<div class="container">
+
+  <!-- ===== Section 1: The formula at a glance ===== -->
+  <section>
+    <h2><span class="step">1</span>The formula at a glance</h2>
+    <p class="lede">Every ROI number in the report is a sum of three quantifiable efficiency components computed per use case, scaled across three scenarios, and compared against the selected deployment tier's annual cost.</p>
+
+    <div class="card">
+      <div class="formula">base_total_per_use_case =
+    fte_recapture
+  + error_reduction
+  + outsourced_avoidance
+
+aggregate_base = sum(base_total) across all use cases
+
+tier_roi_percent = ((aggregate_base − tier_annual_cost) / tier_annual_cost) × 100</div>
+    </div>
+
+    <div class="callout green">
+      <p><strong>Design principle:</strong> the headline number on the report always traces back to specific banded answers the Financial Leader gave. Nothing is estimated, extrapolated, or LLM-generated. The LLM writes prose; it doesn't touch dollars.</p>
+    </div>
+  </section>
+
+  <!-- ===== Section 2: The three components ===== -->
+  <section>
+    <h2><span class="step">2</span>The three benefit components</h2>
+    <p class="lede">Each component captures one distinct dollar mechanism. We sum them rather than multiply because they represent independent cash flows.</p>
+
+    <div class="card">
+      <h3>FTE recapture <span class="pill green">usually the biggest</span></h3>
+      <p>Salary + overhead released when AI automates a process. Only a fraction counts as hard savings — the other half is assumed to be redeployed to higher-value work.</p>
+      <div class="formula">fte_recapture =
+      fte_midpoint
+    × cost_per_fte_midpoint
+    × industry_automation_rate
+    × data_readiness_modifier
+    × 0.5</div>
+      <p style="margin-top:12px;">The trailing <code>× 0.5</code> is the "recapture share" — a deliberately conservative choice so Finance Leaders don't get a magic-bullet number that breaks under scrutiny.</p>
+    </div>
+
+    <div class="card">
+      <h3>Error / rework reduction</h3>
+      <p>40% of annual error-cost avoided once AI takes over the workflow. Based on industry benchmarks for automation-led quality gains.</p>
+      <div class="formula">error_reduction = error_cost_midpoint × 0.40</div>
+    </div>
+
+    <div class="card">
+      <h3>Outsourced-spend avoidance</h3>
+      <p>50% of annual contractor / outsourcing spend displaced by AI. Treats the "N/A" answer as $0 to avoid inflating numbers for respondents who don't outsource at all.</p>
+      <div class="formula">outsourced_avoidance = outsourced_spend_midpoint × 0.50</div>
+    </div>
+  </section>
+
+  <!-- ===== Section 3: Banded answers → midpoints ===== -->
+  <section>
+    <h2><span class="step">3</span>How banded answers become numbers</h2>
+    <p class="lede">Finance Leaders pick bands (e.g. "16–30 FTEs", "<code>&lt;$100K</code>"), not exact figures. Each band has a deterministic midpoint. These are fixed constants in the scoring module — not LLM guesses.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Input</th>
+          <th>Band 1</th>
+          <th>Band 2</th>
+          <th>Band 3</th>
+          <th>Band 4</th>
+          <th>Band 5</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>FTEs on process</td>
+          <td class="num">3</td>
+          <td class="num">10</td>
+          <td class="num">23</td>
+          <td class="num">53</td>
+          <td class="num">100</td>
+        </tr>
+        <tr>
+          <td>Cost / FTE (USD)</td>
+          <td class="num">50K</td>
+          <td class="num">75K</td>
+          <td class="num">110K</td>
+          <td class="num">155K</td>
+          <td class="num">220K</td>
+        </tr>
+        <tr>
+          <td>Annual error cost (USD)</td>
+          <td class="num">50K</td>
+          <td class="num">300K</td>
+          <td class="num">1.25M</td>
+          <td class="num">3.5M</td>
+          <td class="emp">"don't know" → 0</td>
+        </tr>
+        <tr>
+          <td>Outsourced spend (USD)</td>
+          <td class="num">50K</td>
+          <td class="num">300K</td>
+          <td class="num">1.25M</td>
+          <td class="num">3.5M</td>
+          <td class="emp">"N/A" → 0</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><strong>Trade-off:</strong> banded midpoints compress real variance. A "<code>&lt;$100K</code>" answer becomes $50K whether the actual number is $10K or $90K. Intentional — the speed-to-answer gain outweighs the precision loss, and the three-scenario range (conservative / base / optimistic) fans out the uncertainty. Respondents who want tighter numbers can add a free-text note per use case.</p>
+    </div>
+  </section>
+
+  <!-- ===== Section 4: Multipliers ===== -->
+  <section>
+    <h2><span class="step">4</span>The two modifiers that scale FTE recapture</h2>
+    <p class="lede">Industry automation rates and data readiness adjust the FTE recapture component without touching the error / outsourced terms.</p>
+
+    <div class="card">
+      <h3>Industry automation rate</h3>
+      <p>What fraction of this vertical's process FTE is realistically recoverable by AI. Chosen to reflect observed leverage — regulated / physical workflows get lower rates; fully-digital / document-heavy get higher.</p>
+      <table>
+        <thead>
+          <tr><th>Industry</th><th>Rate</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>SaaS / Software</td><td class="num">0.45</td></tr>
+          <tr><td>Legal / Compliance / Advisory</td><td class="num">0.40</td></tr>
+          <tr><td>Financial Services / Retail-Logistics / Telecom-Infra</td><td class="num">0.35</td></tr>
+          <tr><td>Healthcare / Manufacturing / Education-Research</td><td class="num">0.30</td></tr>
+          <tr><td>Energy</td><td class="num">0.25</td></tr>
+          <tr><td>Municipal-Government / Defence-Public-Safety</td><td class="num">0.20</td></tr>
+          <tr><td>Other / unknown</td><td class="num">0.30 (default)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Data readiness modifier</h3>
+      <p>How ready the underlying data is for AI to act on. Paper-heavy processes take longer to realise benefit; fully-digital ones realise it immediately.</p>
+      <table>
+        <thead>
+          <tr><th>Readiness</th><th>Modifier</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Fully digital</td><td class="num">1.00</td></tr>
+          <tr><td>Largely digital</td><td class="num">0.85</td></tr>
+          <tr><td>Mixed</td><td class="num">0.60</td></tr>
+          <tr><td>Mostly paper</td><td class="num">0.35</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== Section 5: Scenarios ===== -->
+  <section>
+    <h2><span class="step">5</span>Three scenarios, not one number</h2>
+    <p class="lede">Every dollar figure on the report is presented as a range. The base scenario is the midpoint; conservative and optimistic fan out symmetrically.</p>
+
+    <div class="scenario-grid">
+      <div class="scn">
+        <div class="label">Conservative</div>
+        <div class="val">× 0.67</div>
+        <div class="sub">Pessimistic assumption set</div>
+      </div>
+      <div class="scn base">
+        <div class="label">Base <span class="pill red" style="margin-left:4px;">headline</span></div>
+        <div class="val">× 1.00</div>
+        <div class="sub">Midpoint; primary number</div>
+      </div>
+      <div class="scn">
+        <div class="label">Optimistic</div>
+        <div class="val">× 1.33</div>
+        <div class="sub">Upper bound</div>
+      </div>
+    </div>
+
+    <p class="lede" style="margin-top:8px;">Custom use cases the Financial Leader adds (that weren't in the industry library) get an additional <code>× 0.70</code> penalty — less data to anchor on, so we discount the base.</p>
+  </section>
+
+  <!-- ===== Section 6: Tier ROI % ===== -->
+  <section>
+    <h2><span class="step">6</span>Turning dollars into a ROI %</h2>
+    <p class="lede">The headline ROI % compares the year-one aggregate benefit against the annual cost of the respondent's chosen deployment tier.</p>
+
+    <div class="card">
+      <div class="formula">tier_roi_percent = ((aggregate_base − tier_annual_cost) / tier_annual_cost) × 100
+
+Displayed rounded to the nearest 10%.</div>
+      <p style="margin-top:12px;">Tier annual costs:</p>
+      <table>
+        <thead>
+          <tr><th>Tier</th><th>Annual cost</th><th>When to recommend</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Multi-tenant (Shared Starter Pack)</td><td class="num">$48,000</td><td>Low-to-moderate sensitivity, speed-to-value priority</td></tr>
+          <tr><td>Hybrid</td><td class="num">$120,000</td><td>Mixed workloads, some need full isolation</td></tr>
+          <tr><td>Single-tenant (Full Starter Pack)</td><td class="num">$360,000</td><td>Regulation / sovereignty / IP-sensitive</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout blue">
+      <p><strong>Why round to 10%?</strong> The "~" prefix on the hero signals "approximate" — this is a directional projection, not audited accounting. Rounding to 10% keeps numbers readable without overstating precision. Earlier we rounded to 100%, which collapsed every ROI under ~150% to 0% or 100% — it actively misled partners. 10% preserves meaningful resolution.</p>
+    </div>
+  </section>
+
+  <!-- ===== Section 7: Worked example ===== -->
+  <section>
+    <h2><span class="step">7</span>Worked example</h2>
+    <p class="lede">A financial-services respondent ran an ROI assessment for three use cases. Here's how the report's headline number assembles.</p>
+
+    <div class="card">
+      <h3>Per use case — Wealth-advisor meeting notes</h3>
+      <table>
+        <thead><tr><th>Input</th><th>Answer</th><th>Midpoint</th></tr></thead>
+        <tbody>
+          <tr><td>FTEs on process</td><td>16–30</td><td class="num">23</td></tr>
+          <tr><td>Cost / FTE</td><td>$130K–$180K</td><td class="num">$155,000</td></tr>
+          <tr><td>Error cost</td><td>&lt;$100K</td><td class="num">$50,000</td></tr>
+          <tr><td>Outsourced spend</td><td>N/A</td><td class="num">$0</td></tr>
+          <tr><td>Data readiness</td><td>Largely digital</td><td class="num">× 0.85</td></tr>
+          <tr><td>Industry</td><td>Financial Services</td><td class="num">× 0.35</td></tr>
+        </tbody>
+      </table>
+      <div class="formula" style="margin-top:16px;">fte_recapture  = 23 × 155,000 × 0.35 × 0.85 × 0.5   = $530,194
+error_reduction = 50,000 × 0.40                      = $20,000
+outsourced     = 0 × 0.50                            = $0
+
+base_total      = $550,194 (rounded to $550K on display)</div>
+    </div>
+
+    <div class="card">
+      <h3>Aggregate across 3 use cases</h3>
+      <p>Assume the other two use cases produce base totals of $420K and $380K respectively. The report hero sums them.</p>
+      <div class="formula">aggregate_base       = $550K + $420K + $380K = $1,350K
+aggregate_conservative = × 0.67        ≈ $905K
+aggregate_optimistic   = × 1.33        ≈ $1,796K</div>
+    </div>
+
+    <div class="card">
+      <h3>Tier ROI % — selecting Single-tenant ($360K/yr)</h3>
+      <div class="formula">tier_roi_base = ((1,350,000 − 360,000) / 360,000) × 100
+              = 275%  → displayed as 280% (nearest 10)
+
+tier_roi_low  = ((905,000   − 360,000) / 360,000) × 100 = 151% → 150%
+tier_roi_high = ((1,796,000 − 360,000) / 360,000) × 100 = 399% → 400%</div>
+
+      <div class="scenario-grid" style="margin-top:16px;">
+        <div class="scn">
+          <div class="label">Conservative</div>
+          <div class="val">~150%</div>
+          <div class="sub">$905K benefit</div>
+        </div>
+        <div class="scn base">
+          <div class="label">Base</div>
+          <div class="val">~280%</div>
+          <div class="sub">$1.35M benefit</div>
+        </div>
+        <div class="scn">
+          <div class="label">Optimistic</div>
+          <div class="val">~400%</div>
+          <div class="sub">$1.80M benefit</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Section 8: Known limitations ===== -->
+  <section>
+    <h2><span class="step">8</span>Known limitations</h2>
+    <p class="lede">Honest caveats — this is a directional pre-sales tool, not an audited NPV model.</p>
+
+    <div class="card">
+      <h3>What's in the formula today</h3>
+      <p><span class="pill green">Quantified</span> FTE recapture, error reduction, outsourced-spend avoidance.</p>
+      <p><span class="pill amber">Asked but not yet in the dollar formula</span> Revenue uplift, risk exposure, compliance cost. Captured in the survey for narrative context; wiring them into the base total is scoped as a follow-up.</p>
+      <p><span class="pill blue">Qualitative only</span> Strategic (vendor independence, sovereignty, data gravity). Narrated by the LLM, not dollar-denominated — on purpose.</p>
+    </div>
+
+    <div class="card">
+      <h3>Known simplifications</h3>
+      <p><strong>Year-one only.</strong> No NPV, no multi-year payback. Benefit figures are annualised first-year recurring.</p>
+      <p><strong>No implementation cost line.</strong> The tier cost is recurring (annual SaaS-equivalent). One-time integration / change-management spend isn't modelled — partners quote those separately.</p>
+      <p><strong>Banded inputs collapse variance.</strong> A "<code>&lt;$100K</code>" error-cost answer looks the same as $10K or $90K.</p>
+      <p><strong>Cycle time is asked but not dollar-scored.</strong> Collected to inform the qualitative narrative, not the formula.</p>
+      <p><strong>Missing inputs default to $0.</strong> A respondent who leaves "Cost / FTE" blank silently drops the FTE recapture term from their base total. This surfaces as a "LOW confidence" flag on the use-case card.</p>
+    </div>
+
+    <div class="callout">
+      <p><strong>How to read the output:</strong> treat the base ROI % as a directional prompt for a follow-up conversation, not as a committed number. The range conservative → optimistic fan-out exists specifically so partners can anchor discussions at the low end if a prospect is risk-averse.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer">
+  AI Readiness Assessment Platform · Built by Better Brain for Equinix Global Solutions · ROI calculation reference
+</div>
+
+</body>
+</html>
