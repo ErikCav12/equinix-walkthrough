@@ -362,7 +362,6 @@
     <button class="tab" onclick="switchView('client')">Client</button>
     <button class="tab" onclick="switchView('admin')">Partner admin</button>
     <button class="tab" onclick="switchView('pipeline')">End-to-end flow</button>
-    <button class="tab" onclick="switchView('roadmap')">Next priorities</button>
   </div>
 
   <!-- ===== GSA FLOW ===== -->
@@ -729,46 +728,6 @@
     </div>
   </div>
 
-  <!-- ===== ROADMAP / GAPS ===== -->
-  <div class="view" id="view-roadmap">
-    <div class="roadmap">
-      <h3>Next development priorities</h3>
-      <p style="font-size:0.8rem;color:var(--text-2);margin-bottom:20px;">Ordered by impact on the partner workflow.</p>
-
-      <div class="roadmap-grid">
-        <div class="roadmap-item">
-          <div class="priority p1">Priority 1</div>
-          <h4>Notes and activity log</h4>
-          <p>Persist notes and flags to the backend. Archive action is already persisted. Notes enable team-wide visibility into client follow-up activity.</p>
-        </div>
-        <div class="roadmap-item">
-          <div class="priority p1">Priority 1</div>
-          <h4>Email notifications</h4>
-          <p>Notify GSAs when a client completes an assessment. Currently there is no notification; GSAs must check the dashboard manually.</p>
-        </div>
-        <div class="roadmap-item">
-          <div class="priority p1">Priority 1</div>
-          <h4>Escalation workflow</h4>
-          <p>"Flag for solution design" currently shows a toast but does not persist or notify the admin. Wire this to the notes system and surface flagged items in the admin view.</p>
-        </div>
-        <div class="roadmap-item">
-          <div class="priority p2">Priority 2</div>
-          <h4>Industry benchmarks</h4>
-          <p>Compare a client's scores against their industry average across all 7 dimensions. Gives the GSA an immediate conversation starter.</p>
-        </div>
-        <div class="roadmap-item">
-          <div class="priority p2">Priority 2</div>
-          <h4>Aggregate analytics</h4>
-          <p>Industry breakdown, use case distribution, and revenue pipeline funnel across the full portfolio. Currently the dashboard shows stage distribution only.</p>
-        </div>
-        <div class="roadmap-item">
-          <div class="priority p2">Priority 2</div>
-          <h4>Proposal generation</h4>
-          <p>Auto-generate a scoped proposal document from the assessment data, investment case, and prototype. Currently the GSA assembles this manually.</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
 </div>
 
